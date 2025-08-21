@@ -1,11 +1,16 @@
 import { Clock, Trophy, RefreshCw, Award, ChevronDown, BookOpen } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 export default function StudentDashboard() {
+
+  const user = useSelector((state)=> state.user.data)
+
+
   return (
     <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
       {/* Header Section */}
       <div className="bg-blue-600 rounded-2xl p-8 mb-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, Ujjwal Sapkota!</h1>
+        <h1 className="text-3xl font-bold mb-2">Welcome back, {user.name}!</h1>
         <p className="text-blue-100 text-lg">Ready to test your knowledge today?</p>
       </div>
 

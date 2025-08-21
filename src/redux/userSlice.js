@@ -28,8 +28,7 @@ export const logOut = createAsyncThunk(
         method: "POST",
       });
 
-      // Just return the user, don't try to dispatch here
-      return res.user;
+      
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch user");
     }

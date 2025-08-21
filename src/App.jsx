@@ -15,7 +15,7 @@ import StudentPage from "./pages/student/StudentPage";
 import StaffPage from "./pages/staff/StaffPage";
 import PlayQuiz from "./pages/student/playQuiz";
 
-import { fetchUser } from "./redux/userSlice";
+import { fetchUser, logOut } from "./redux/userSlice";
 import { hideUserDetails, showUserDetails } from "./redux/basicSlice";
 
 export default function App() {
@@ -33,20 +33,23 @@ export default function App() {
     dispatch(fetchUser());
   }, [dispatch]);
 
-  // Handle redirects based on user role
   useEffect(() => {
-    if (user.data && location.pathname === "/") {
+    if (!user.loading && user.data && location.pathname === "/") {
       if (user.data.role === "student") {
         navigate("/student");
       } else {
         navigate("/staff");
       }
     }
-  }, [user.data, location.pathname, navigate]);
+  }, [user.loading, user.data, location.pathname, navigate]);
 
   // Show loading while user data is being fetched
   if (user.loading) return <Loading />;
-  if (user.error) return <Error {...user.error} />;
+  // if (user.error) return <Error {...user.error} />;
+
+  function logOut() {
+    dispatch(logOut());
+  }
 
   return (
     <div>
@@ -64,6 +67,7 @@ export default function App() {
           {basic.userDetails && (
             <UserDetails
               user={user}
+              onLogout={logOut}
               onClose={() => dispatch(hideUserDetails())}
             />
           )}

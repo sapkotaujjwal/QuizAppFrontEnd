@@ -35,7 +35,7 @@ const Navbar = ({ userDetailsController }) => {
               onClick={userDetailsController}
             >
               <FontAwesomeIcon icon={faUserCircle} size="2x" className="text-gray-600" />
-              <span className="text-sm hidden lg:block text-gray-700">Hi, Ujjwal</span>
+              <span className="text-sm hidden lg:block text-gray-700">Hi, Dikshant</span>
             </button>
           </div>
 

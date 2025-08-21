@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import CreateUser from "./Staff/CreateUser";
+import { useSelector } from "react-redux";
 
 export default function AdminDashboard() {
   const statsCards = [
@@ -124,6 +125,7 @@ export default function AdminDashboard() {
   ];
 
   const [addUser, setAddUser] = useState(false);
+    const user = useSelector((state) => state.user.data);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -142,7 +144,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Welcome back, Ujjwal Sapkota!
+                  Welcome back, {user.name}!
                 </h1>
                 <p className="text-gray-600">
                   Manage your quizzes and track student progress

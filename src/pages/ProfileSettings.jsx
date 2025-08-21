@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
 const ProfileSettings = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -76,6 +77,11 @@ const ProfileSettings = () => {
     });
     setShowPasswords({ current: false, new: false, confirm: false });
   };
+
+  const user = useSelector((state)=> state.user.data)
+
+
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white">
       {/* Header */}
@@ -125,13 +131,13 @@ const ProfileSettings = () => {
             <label className="text-sm text-gray-600 mb-1 block">
               Full Name
             </label>
-            <p className="text-gray-900 font-medium">{profileData.fullName}</p>
+            <p className="text-gray-900 font-medium">{user.name}</p>
           </div>
           <div>
             <label className="text-sm text-gray-600 mb-1 block">
               Email Address
             </label>
-            <p className="text-gray-900 font-medium">{profileData.email}</p>
+            <p className="text-gray-900 font-medium">{user.email}</p>
           </div>
         </div>
       </div>
@@ -151,7 +157,7 @@ const ProfileSettings = () => {
           <div>
             <label className="text-sm text-gray-600 mb-2 block">Role</label>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-500 text-white">
-              Teacher
+              {user.role}
             </span>
           </div>
           <div>
@@ -172,7 +178,7 @@ const ProfileSettings = () => {
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <p className="text-gray-900 font-medium">August 21, 2025</p>
+              <p className="text-gray-900 font-medium">{user.createdAt.split("T")[0]}</p>
             </div>
           </div>
         </div>
