@@ -2,7 +2,7 @@ import axios from "axios";
 import { showError } from "../redux/basicSlice";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://localhost:5000",
   timeout: 10000,
   withCredentials: true, // This ensures cookies are sent with requests
 });

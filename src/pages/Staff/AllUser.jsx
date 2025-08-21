@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Search, 
-  Filter, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  X, 
-  Save, 
+import {
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Eye,
+  X,
+  Save,
   User,
   Mail,
   Calendar,
@@ -17,143 +17,182 @@ import {
   CheckCircle,
   XCircle,
   Plus,
-  MoreVertical
+  MoreVertical,
 } from 'lucide-react';
+import { callApi } from '../../tools/api';
+import CreateUser from './CreateUser';
 
 const AllUser = () => {
-  // Sample user data based on the schema
-  const [users, setUsers] = useState([
-    {
-      _id: '1',
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      role: 'student',
-      profileImage: null,
-      isActive: true,
-      lastLogin: '2024-01-15T10:30:00Z',
-      emailVerified: true,
-      enrolledCourses: ['course1', 'course2'],
-      totalQuizzesTaken: 25,
-      averageScore: 87.5,
-      quizzesCreated: [],
-      questionsCreated: [],
-      createdAt: '2023-12-01T08:00:00Z',
-      updatedAt: '2024-01-15T10:30:00Z'
-    },
-    {
-      _id: '2',
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@example.com',
-      role: 'teacher',
-      profileImage: null,
-      isActive: true,
-      lastLogin: '2024-01-16T14:20:00Z',
-      emailVerified: true,
-      enrolledCourses: [],
-      totalQuizzesTaken: 5,
-      averageScore: 95.2,
-      quizzesCreated: ['quiz1', 'quiz2', 'quiz3'],
-      questionsCreated: ['q1', 'q2', 'q3', 'q4'],
-      createdAt: '2023-11-15T09:00:00Z',
-      updatedAt: '2024-01-16T14:20:00Z'
-    },
-    {
-      _id: '3',
-      name: 'Admin User',
-      email: 'admin@example.com',
-      role: 'admin',
-      profileImage: null,
-      isActive: true,
-      lastLogin: '2024-01-17T09:00:00Z',
-      emailVerified: true,
-      enrolledCourses: [],
-      totalQuizzesTaken: 0,
-      averageScore: 0,
-      quizzesCreated: [],
-      questionsCreated: [],
-      createdAt: '2023-10-01T00:00:00Z',
-      updatedAt: '2024-01-17T09:00:00Z'
-    },
-    {
-      _id: '4',
-      name: 'Mike Wilson',
-      email: 'mike.wilson@example.com',
-      role: 'student',
-      profileImage: null,
-      isActive: false,
-      lastLogin: '2024-01-10T16:45:00Z',
-      emailVerified: false,
-      enrolledCourses: ['course1'],
-      totalQuizzesTaken: 12,
-      averageScore: 72.3,
-      quizzesCreated: [],
-      questionsCreated: [],
-      createdAt: '2023-12-15T12:00:00Z',
-      updatedAt: '2024-01-10T16:45:00Z'
-    }
-  ]);
-
+  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const [isAddMode, setIsAddMode] = useState(false); // New state for add user modal
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    role: 'student',
+    isActive: true,
+    emailVerified: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch users from API
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await callApi({
+        url: '/users',
+        method: 'GET',
+      });
+      setUsers(response.data || []);
+    } catch (err) {
+      setError('Failed to fetch users');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter users based on search and filters
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && user.isActive) ||
-                         (statusFilter === 'inactive' && !user.isActive);
-    const matchesVerification = verificationFilter === 'all' ||
-                               (verificationFilter === 'verified' && user.emailVerified) ||
-                               (verificationFilter === 'unverified' && !user.emailVerified);
-    
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && user.isActive) ||
+      (statusFilter === 'inactive' && !user.isActive);
+    const matchesVerification =
+      verificationFilter === 'all' ||
+      (verificationFilter === 'verified' && user.emailVerified) ||
+      (verificationFilter === 'unverified' && !user.emailVerified);
+
     return matchesSearch && matchesRole && matchesStatus && matchesVerification;
   });
 
   const handleUserClick = (user) => {
     setSelectedUser({ ...user });
     setIsEditMode(false);
+    setIsAddMode(false);
   };
 
   const handleEditUser = () => {
     setIsEditMode(true);
   };
 
-  const handleSaveUser = () => {
-    setUsers(users.map(user => 
-      user._id === selectedUser._id ? selectedUser : user
-    ));
-    setIsEditMode(false);
+  const handleSaveUser = async () => {
+    try {
+      const response = await callApi({
+        url: `/api/users/${selectedUser._id}`,
+        method: 'PUT',
+        data: {
+          name: selectedUser.name,
+          email: selectedUser.email,
+          role: selectedUser.role,
+          isActive: selectedUser.isActive,
+          emailVerified: selectedUser.emailVerified,
+        },
+      });
+      setUsers(
+        users.map((user) =>
+          user._id === selectedUser._id ? { ...user, ...response.user } : user
+        )
+      );
+      setIsEditMode(false);
+    } catch (err) {
+      setError('Failed to update user');
+      console.error(err);
+    }
   };
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(user => user._id !== userId));
-      if (selectedUser && selectedUser._id === userId) {
-        setSelectedUser(null);
+      try {
+        await callApi({
+          url: `/api/users/${userId}`,
+          method: 'DELETE',
+        });
+        setUsers(users.filter((user) => user._id !== userId));
+        if (selectedUser && selectedUser._id === userId) {
+          setSelectedUser(null);
+        }
+      } catch (err) {
+        setError('Failed to delete user');
+        console.error(err);
       }
     }
   };
 
+  const handleAddUser = async () => {
+    try {
+      const response = await callApi({
+        url: '/api/users',
+        method: 'POST',
+        data: {
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          isActive: newUser.isActive,
+          emailVerified: newUser.emailVerified,
+          totalQuizzesTaken: 0,
+          averageScore: 0,
+          enrolledCourses: [],
+          quizzesCreated: [],
+          questionsCreated: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        },
+      });
+      setUsers([...users, response.user]);
+      setIsAddMode(false);
+      setNewUser({
+        name: '',
+        email: '',
+        role: 'student',
+        isActive: true,
+        emailVerified: false,
+      });
+    } catch (err) {
+      setError('Failed to add user');
+      console.error(err);
+    }
+  };
+
   const handleInputChange = (field, value) => {
-    setSelectedUser(prev => ({
+    setSelectedUser((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
+    }));
+  };
+
+  const handleNewUserInputChange = (field, value) => {
+    setNewUser((prev) => ({
+      ...prev,
+      [field]: value,
     }));
   };
 
   const getRoleColor = (role) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'teacher': return 'bg-blue-100 text-blue-800';
-      case 'student': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'admin':
+        return 'bg-red-100 text-red-800';
+      case 'teacher':
+        return 'bg-blue-100 text-blue-800';
+      case 'student':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -163,18 +202,50 @@ const AllUser = () => {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-red-600">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
-        <p className="text-gray-600">Manage users, roles, and permissions</p>
+
+            {/* Add New User Modal */}
+      {isAddMode && (
+        <CreateUser close={() => setIsAddMode(false)} />
+      )}
+
+
+      {!isAddMode && <div className="">
+              <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+          <p className="text-gray-600">Manage users, roles, and permissions</p>
+        </div>
+        <button
+          onClick={() => setIsAddMode(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          <Plus className="w-4 h-4" />
+          Add New User
+        </button>
       </div>
 
-      {/* Search and Filters */}
       <div className="bg-white rounded-lg shadow-sm shadow1 p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-1 gap-4 items-center">
@@ -188,29 +259,39 @@ const AllUser = () => {
                 className="pl-10 pr-4 py-2 shadow1 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
               />
             </div>
-
-                        <div className='flex'>
-             
+            <div className="flex gap-4">
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full p-2 px-10 shadow1 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="p-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Roles</option>
                 <option value="admin">Admin</option>
                 <option value="teacher">Teacher</option>
                 <option value="student">Student</option>
               </select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="p-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <select
+                value={verificationFilter}
+                onChange={(e) => setVerificationFilter(e.target.value)}
+                className="p-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Verification</option>
+                <option value="verified">Verified</option>
+                <option value="unverified">Unverified</option>
+              </select>
             </div>
-
           </div>
-
         </div>
-
-
       </div>
-
-      {/* Users Table */}
       <div className="bg-white rounded-lg shadow-sm shadow1 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -238,8 +319,8 @@ const AllUser = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <tr 
-                  key={user._id} 
+                <tr
+                  key={user._id}
                   className="hover:bg-gray-50 cursor-pointer"
                   onClick={() => handleUserClick(user)}
                 >
@@ -255,15 +336,21 @@ const AllUser = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(
+                        user.role
+                      )}`}
+                    >
                       {user.role}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}
+                      >
                         {user.isActive ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                         {user.isActive ? 'Active' : 'Inactive'}
                       </span>
@@ -315,12 +402,13 @@ const AllUser = () => {
           <div className="text-center py-12">
             <User className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Try adjusting your search or filter criteria.
-            </p>
+            <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
           </div>
         )}
       </div>
+      </div>}
+
+
 
       {/* User Details Modal */}
       {selectedUser && (
@@ -371,7 +459,7 @@ const AllUser = () => {
                     <User className="w-5 h-5" />
                     Basic Information
                   </h3>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                     {isEditMode ? (
@@ -418,7 +506,11 @@ const AllUser = () => {
                         <option value="admin">Admin</option>
                       </select>
                     ) : (
-                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getRoleColor(selectedUser.role)}`}>
+                      <span
+                        className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getRoleColor(
+                          selectedUser.role
+                        )}`}
+                      >
                         {selectedUser.role}
                       </span>
                     )}
@@ -436,9 +528,11 @@ const AllUser = () => {
                         <option value="false">Inactive</option>
                       </select>
                     ) : (
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full ${
-                        selectedUser.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full ${
+                          selectedUser.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}
+                      >
                         {selectedUser.isActive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                         {selectedUser.isActive ? 'Active' : 'Inactive'}
                       </span>
@@ -481,9 +575,11 @@ const AllUser = () => {
                         <option value="false">Unverified</option>
                       </select>
                     ) : (
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full ${
-                        selectedUser.emailVerified ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full ${
+                          selectedUser.emailVerified ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
                         <Mail className="w-4 h-4" />
                         {selectedUser.emailVerified ? 'Verified' : 'Unverified'}
                       </span>

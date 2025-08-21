@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Trophy,
   TrendingUp,
@@ -24,14 +24,36 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
+import { callApi } from "../../tools/api";
 
 const MyStats = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState("all");
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [viewMode, setViewMode] = useState("overview"); // overview, detailed, analytics
 
-  // Mock data based on your QuizAttempt model
-  const quizAttempts = [
+  const [quizAttempts, setQuizAttempts] = useState([]);
+
+  async function fetchQuizAttempts() {
+    try {
+      const data = await callApi({
+        url: "/analytics/self",
+        method: "GET", // Explicitly specify if needed, though GET is the default
+      });
+      setQuizAttempts(data);
+    } catch (error) {
+      console.error("Failed to fetch quiz attempts:", error.message);
+      // Optionally dispatch an error to Redux or show a user-friendly message
+      showError({ message: "Failed to fetch quiz attempts" });
+    }
+  }
+
+  useEffect(() => {
+
+      fetchQuizAttempts();
+    
+  }, []);
+
+  const quizAttempts1 = [
     {
       _id: "1",
       quiz: {
@@ -130,6 +152,7 @@ const MyStats = () => {
   ];
 
   // Calculate statistics
+
   const totalAttempts = quizAttempts.length;
   const passedAttempts = quizAttempts.filter(
     (attempt) => attempt.passed

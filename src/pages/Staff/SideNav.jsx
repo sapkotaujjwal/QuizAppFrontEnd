@@ -15,8 +15,8 @@ const SideNav = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const sidebarItems = [
-    { icon: BarChart3, label: "Dashboard", path: "/staff" },
-    { icon: BookOpen, label: "My Questions", path: "/staff/quiz", badge: "12" },
+    // { icon: BarChart3, label: "Dashboard", path: "/staff" },
+    { icon: BookOpen, label: "My Quizzes", path: "/staff/quiz" },
     // {
     //   icon: HelpCircle,
     //   label: "Question Bank",

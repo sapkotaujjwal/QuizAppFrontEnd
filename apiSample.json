@@ -1,0 +1,898 @@
+{
+  "info": {
+    "name": "Quiz App API",
+    "description": "Complete API collection for Quiz Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User registered successfully\",\n  \"user\": {\n    \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"admin\",\n    \"isActive\": true,\n    \"emailVerified\": false,\n    \"totalQuizzesTaken\": 0,\n    \"averageScore\": 0,\n    \"createdAt\": \"2023-09-01T10:30:00.000Z\",\n    \"updatedAt\": \"2023-09-01T10:30:00.000Z\"\n  },\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"user\": {\n    \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"admin\",\n    \"isActive\": true,\n    \"lastLogin\": \"2023-09-01T10:35:00.000Z\"\n  },\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset OTP sent to email\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\",\n  \"newPassword\": \"newpassword123\",\n  \"email\": \"john.doe@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"user\": {\n    \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"admin\",\n    \"isActive\": true,\n    \"lastLogin\": \"2023-09-01T10:35:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Logged out successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=10&search=john&role=teacher",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "john"
+                },
+                {
+                  "key": "role",
+                  "value": "teacher"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n      \"name\": \"John Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"role\": \"teacher\",\n      \"isActive\": true,\n      \"totalQuizzesTaken\": 5,\n      \"averageScore\": 85,\n      \"createdAt\": \"2023-09-01T10:30:00.000Z\"\n    }\n  ],\n  \"pagination\": {\n    \"total\": 1,\n    \"perPage\": 10,\n    \"currentPage\": 1,\n    \"totalPages\": 1\n  },\n  \"appliedFilters\": {\n    \"role\": \"teacher\",\n    \"search\": \"john\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/64f2a8b3c4d5e6f7g8h9i0j1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "64f2a8b3c4d5e6f7g8h9i0j1"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"user\": {\n    \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"teacher\",\n    \"isActive\": true,\n    \"totalQuizzesTaken\": 5,\n    \"averageScore\": 85,\n    \"quizzesCreated\": [\"64f2b8b3c4d5e6f7g8h9i0j2\"],\n    \"questionsCreated\": [\"64f2c8b3c4d5e6f7g8h9i0j3\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create User (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"teacher\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User created successfully\",\n  \"user\": {\n    \"_id\": \"64f2d8b3c4d5e6f7g8h9i0j4\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane.smith@example.com\",\n    \"role\": \"teacher\",\n    \"isActive\": true,\n    \"createdAt\": \"2023-09-01T11:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"email\": \"john.doe.updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/64f2a8b3c4d5e6f7g8h9i0j1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "64f2a8b3c4d5e6f7g8h9i0j1"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User updated successfully\",\n  \"user\": {\n    \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n    \"name\": \"John Doe Updated\",\n    \"email\": \"john.doe.updated@example.com\",\n    \"role\": \"teacher\",\n    \"isActive\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete User (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/64f2a8b3c4d5e6f7g8h9i0j1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "64f2a8b3c4d5e6f7g8h9i0j1"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User deleted successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Questions Management",
+      "item": [
+        {
+          "name": "Get All Questions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/questions?subject=Mathematics&difficulty=medium&search=algebra&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["questions"],
+              "query": [
+                {
+                  "key": "subject",
+                  "value": "Mathematics"
+                },
+                {
+                  "key": "difficulty",
+                  "value": "medium"
+                },
+                {
+                  "key": "search",
+                  "value": "algebra"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"questions\": [\n    {\n      \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n      \"title\": \"Basic Algebra Question\",\n      \"questionText\": \"What is the value of x in the equation 2x + 5 = 15?\",\n      \"questionType\": \"multiple-choice\",\n      \"options\": [\n        {\n          \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j4\",\n          \"text\": \"5\",\n          \"isCorrect\": true\n        },\n        {\n          \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j5\",\n          \"text\": \"10\",\n          \"isCorrect\": false\n        }\n      ],\n      \"difficulty\": \"medium\",\n      \"subject\": \"Mathematics\",\n      \"tags\": [\"algebra\", \"equations\"],\n      \"createdBy\": {\n        \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n        \"name\": \"John Doe\",\n        \"email\": \"john.doe@example.com\"\n      },\n      \"timeLimit\": 30,\n      \"maxAttempts\": 3,\n      \"passingScore\": 60,\n      \"isPublished\": true,\n      \"totalAttempts\": 5,\n      \"averageScore\": 75,\n      \"createdAt\": \"2023-09-01T09:00:00.000Z\"\n    }\n  ],\n  \"totalPages\": 1,\n  \"currentPage\": 1,\n  \"total\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Quiz by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/64f2b8b3c4d5e6f7g8h9i0j2",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "64f2b8b3c4d5e6f7g8h9i0j2"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"quiz\": {\n    \"_id\": \"64f2b8b3c4d5e6f7g8h9i0j2\",\n    \"title\": \"Mathematics Quiz 1\",\n    \"description\": \"Basic algebra and arithmetic quiz\",\n    \"subject\": \"Mathematics\",\n    \"questions\": [\n      {\n        \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n        \"title\": \"Basic Algebra Question\",\n        \"questionText\": \"What is the value of x in the equation 2x + 5 = 15?\",\n        \"questionType\": \"multiple-choice\",\n        \"options\": [\n          {\n            \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j4\",\n            \"text\": \"5\"\n          },\n          {\n            \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j5\",\n            \"text\": \"10\"\n          }\n        ]\n      }\n    ],\n    \"createdBy\": {\n      \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n      \"name\": \"John Doe\",\n      \"email\": \"john.doe@example.com\"\n    },\n    \"timeLimit\": 30,\n    \"maxAttempts\": 3,\n    \"passingScore\": 60,\n    \"isPublished\": true\n  },\n  \"userAttempts\": [\n    {\n      \"_id\": \"64f2e8b3c4d5e6f7g8h9i0j6\",\n      \"score\": 1,\n      \"percentage\": 100,\n      \"passed\": true,\n      \"attemptNumber\": 1,\n      \"submittedAt\": \"2023-09-01T12:00:00.000Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Quiz",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Mathematics Quiz 1\",\n  \"description\": \"Basic algebra and arithmetic quiz\",\n  \"subject\": \"Mathematics\",\n  \"questions\": [\"64f2c8b3c4d5e6f7g8h9i0j3\", \"64f2c8b3c4d5e6f7g8h9i0j7\"],\n  \"timeLimit\": 30,\n  \"maxAttempts\": 3,\n  \"passingScore\": 60,\n  \"isPublished\": false,\n  \"startDate\": \"2023-09-01T00:00:00.000Z\",\n  \"endDate\": \"2023-12-31T23:59:59.000Z\",\n  \"allowedStudents\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Quiz created successfully\",\n  \"quiz\": {\n    \"_id\": \"64f2b8b3c4d5e6f7g8h9i0j2\",\n    \"title\": \"Mathematics Quiz 1\",\n    \"description\": \"Basic algebra and arithmetic quiz\",\n    \"subject\": \"Mathematics\",\n    \"questions\": [\n      {\n        \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n        \"title\": \"Basic Algebra Question\",\n        \"difficulty\": \"medium\"\n      }\n    ],\n    \"createdBy\": {\n      \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n      \"name\": \"John Doe\",\n      \"email\": \"john.doe@example.com\"\n    },\n    \"timeLimit\": 30,\n    \"maxAttempts\": 3,\n    \"passingScore\": 60,\n    \"isPublished\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Quiz",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Mathematics Quiz\",\n  \"description\": \"Updated description for the quiz\",\n  \"timeLimit\": 45,\n  \"isPublished\": true,\n  \"passingScore\": 70\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/64f2b8b3c4d5e6f7g8h9i0j2",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "64f2b8b3c4d5e6f7g8h9i0j2"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Quiz updated successfully\",\n  \"quiz\": {\n    \"_id\": \"64f2b8b3c4d5e6f7g8h9i0j2\",\n    \"title\": \"Updated Mathematics Quiz\",\n    \"description\": \"Updated description for the quiz\",\n    \"timeLimit\": 45,\n    \"isPublished\": true,\n    \"passingScore\": 70\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Quiz",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/64f2b8b3c4d5e6f7g8h9i0j2",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "64f2b8b3c4d5e6f7g8h9i0j2"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Quiz deleted successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Submit Quiz Attempt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    {\n      \"questionId\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n      \"selectedAnswer\": \"64f2c8b3c4d5e6f7g8h9i0j4\",\n      \"timeSpent\": 45\n    },\n    {\n      \"questionId\": \"64f2c8b3c4d5e6f7g8h9i0j7\",\n      \"selectedAnswer\": \"Paris\",\n      \"timeSpent\": 30\n    }\n  ],\n  \"timeSpent\": 1800\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/64f2b8b3c4d5e6f7g8h9i0j2/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "64f2b8b3c4d5e6f7g8h9i0j2", "submit"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Quiz submitted successfully\",\n  \"attempt\": {\n    \"score\": 2,\n    \"percentage\": 100,\n    \"passed\": true,\n    \"timeSpent\": 1800,\n    \"attemptNumber\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Quiz Attempts (Teacher/Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/64f2b8b3c4d5e6f7g8h9i0j2/attempts?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "64f2b8b3c4d5e6f7g8h9i0j2", "attempts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"attempts\": [\n    {\n      \"_id\": \"64f2e8b3c4d5e6f7g8h9i0j6\",\n      \"quiz\": \"64f2b8b3c4d5e6f7g8h9i0j2\",\n      \"student\": {\n        \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j8\",\n        \"name\": \"Student Name\",\n        \"email\": \"student@example.com\"\n      },\n      \"score\": 2,\n      \"percentage\": 100,\n      \"passed\": true,\n      \"timeSpent\": 1800,\n      \"attemptNumber\": 1,\n      \"submittedAt\": \"2023-09-01T12:00:00.000Z\"\n    }\n  ],\n  \"totalPages\": 1,\n  \"currentPage\": 1,\n  \"total\": 1\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "dashboard"]
+            }
+          },
+          "response": [
+            {
+              "name": "Admin Dashboard Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"stats\": {\n    \"totalUsers\": 150,\n    \"totalTeachers\": 25,\n    \"totalStudents\": 120,\n    \"totalQuizzes\": 45,\n    \"totalQuestions\": 200,\n    \"totalAttempts\": 500,\n    \"recentUsers\": [\n      {\n        \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n        \"name\": \"John Doe\",\n        \"email\": \"john.doe@example.com\",\n        \"role\": \"teacher\",\n        \"createdAt\": \"2023-09-01T10:30:00.000Z\"\n      }\n    ],\n    \"recentQuizzes\": [\n      {\n        \"_id\": \"64f2b8b3c4d5e6f7g8h9i0j2\",\n        \"title\": \"Mathematics Quiz 1\",\n        \"createdBy\": {\n          \"name\": \"John Doe\"\n        },\n        \"createdAt\": \"2023-09-01T09:00:00.000Z\"\n      }\n    ],\n    \"recentQuestions\": [\n      {\n        \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n        \"title\": \"Basic Algebra Question\",\n        \"createdBy\": {\n          \"name\": \"John Doe\"\n        },\n        \"createdAt\": \"2023-09-01T08:30:00.000Z\"\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "Teacher Dashboard Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"stats\": {\n    \"totalQuizzes\": 5,\n    \"totalQuestions\": 25,\n    \"totalAttempts\": 50,\n    \"publishedQuizzes\": 3,\n    \"recentAttempts\": [\n      {\n        \"_id\": \"64f2e8b3c4d5e6f7g8h9i0j6\",\n        \"student\": {\n          \"name\": \"Student Name\"\n        },\n        \"quiz\": {\n          \"title\": \"Mathematics Quiz 1\"\n        },\n        \"percentage\": 85,\n        \"passed\": true,\n        \"submittedAt\": \"2023-09-01T12:00:00.000Z\"\n      }\n    ],\n    \"topPerformingQuizzes\": [\n      {\n        \"_id\": \"64f2b8b3c4d5e6f7g8h9i0j2\",\n        \"title\": \"Mathematics Quiz 1\",\n        \"averageScore\": 85,\n        \"totalAttempts\": 20\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "Student Dashboard Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,\n      "header": [],\n      "body": "{\n  \"success\": true,\n  \"stats\": {\n    \"totalAttempts\": 10,\n    \"averageScore\": 82,\n    \"passedQuizzes\": 8,\n    \"availableQuizzes\": 15,\n    \"recentAttempts\": [\n      {\n        \"_id\": \"64f2e8b3c4d5e6f7g8h9i0j6\",\n        \"quiz\": {\n          \"title\": \"Mathematics Quiz 1\",\n          \"subject\": \"Mathematics\"\n        },\n        \"percentage\": 90,\n        \"passed\": true,\n        \"submittedAt\": \"2023-09-01T12:00:00.000Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Student Performance Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/student-performance?studentId=64f2a8b3c4d5e6f7g8h9i0j8&quizId=64f2b8b3c4d5e6f7g8h9i0j2",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "student-performance"],
+              "query": [
+                {
+                  "key": "studentId",
+                  "value": "64f2a8b3c4d5e6f7g8h9i0j8"
+                },
+                {
+                  "key": "quizId",
+                  "value": "64f2b8b3c4d5e6f7g8h9i0j2"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"performanceData\": [\n    {\n      \"student\": {\n        \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j8\",\n        \"name\": \"Student Name\",\n        \"email\": \"student@example.com\"\n      },\n      \"attempts\": [\n        {\n          \"quiz\": {\n            \"_id\": \"64f2b8b3c4d5e6f7g8h9i0j2\",\n            \"title\": \"Mathematics Quiz 1\",\n            \"subject\": \"Mathematics\",\n            \"passingScore\": 60\n          },\n          \"score\": 85,\n          \"passed\": true,\n          \"submittedAt\": \"2023-09-01T12:00:00.000Z\"\n        }\n      ],\n      \"totalAttempts\": 1,\n      \"averageScore\": 85,\n      \"passRate\": 100\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Quiz Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/quiz-analytics/64f2b8b3c4d5e6f7g8h9i0j2",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "quiz-analytics", "64f2b8b3c4d5e6f7g8h9i0j2"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"analytics\": {\n    \"quiz\": {\n      \"title\": \"Mathematics Quiz 1\",\n      \"totalAttempts\": 25,\n      \"averageScore\": 78,\n      \"passRate\": 80\n    },\n    \"questionAnalytics\": [\n      {\n        \"question\": {\n          \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n          \"title\": \"Basic Algebra Question\",\n          \"difficulty\": \"medium\"\n        },\n        \"totalAttempts\": 25,\n        \"correctAnswers\": 20,\n        \"correctPercentage\": 80,\n        \"averageTimeSpent\": 45\n      }\n    ],\n    \"scoreDistribution\": {\n      \"0-20\": 2,\n      \"21-40\": 3,\n      \"41-60\": 5,\n      \"61-80\": 8,\n      \"81-100\": 7\n    },\n    \"recentAttempts\": [\n      {\n        \"student\": \"Student Name\",\n        \"score\": 85,\n        \"passed\": true,\n        \"submittedAt\": \"2023-09-01T12:00:00.000Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Question Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/question-analytics/64f2c8b3c4d5e6f7g8h9i0j3",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "question-analytics", "64f2c8b3c4d5e6f7g8h9i0j3"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"analytics\": {\n    \"question\": {\n      \"title\": \"Basic Algebra Question\",\n      \"totalAttempts\": 30,\n      \"correctAnswers\": 24,\n      \"incorrectAnswers\": 6\n    },\n    \"recentAttempts\": [\n      {\n        \"student\": \"Student Name\",\n        \"submittedAt\": \"2023-09-01T12:00:00.000Z\",\n        \"score\": 85,\n        \"passed\": true\n      }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}b3c4d5e6f7g8h9i0j1\",\n        \"name\": \"John Doe\",\n        \"email\": \"john.doe@example.com\"\n      },\n      \"isActive\": true,\n      \"timesUsed\": 0,\n      \"averageScore\": 0\n    }\n  ],\n  \"totalPages\": 1,\n  \"currentPage\": 1,\n  \"total\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Question by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/questions/64f2c8b3c4d5e6f7g8h9i0j3",
+              "host": ["{{baseUrl}}"],
+              "path": ["questions", "64f2c8b3c4d5e6f7g8h9i0j3"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"question\": {\n    \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n    \"title\": \"Basic Algebra Question\",\n    \"questionText\": \"What is the value of x in the equation 2x + 5 = 15?\",\n    \"questionType\": \"multiple-choice\",\n    \"options\": [\n      {\n        \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j4\",\n        \"text\": \"5\",\n        \"isCorrect\": true\n      },\n      {\n        \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j5\",\n        \"text\": \"10\",\n        \"isCorrect\": false\n      }\n    ],\n    \"explanation\": \"To solve 2x + 5 = 15, subtract 5 from both sides: 2x = 10, then divide by 2: x = 5\",\n    \"difficulty\": \"medium\",\n    \"subject\": \"Mathematics\",\n    \"createdBy\": {\n      \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n      \"name\": \"John Doe\",\n      \"email\": \"john.doe@example.com\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Multiple Choice Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Basic Algebra Question\",\n  \"questionText\": \"What is the value of x in the equation 2x + 5 = 15?\",\n  \"questionType\": \"multiple-choice\",\n  \"options\": [\n    {\n      \"text\": \"5\",\n      \"isCorrect\": true\n    },\n    {\n      \"text\": \"10\",\n      \"isCorrect\": false\n    },\n    {\n      \"text\": \"15\",\n      \"isCorrect\": false\n    },\n    {\n      \"text\": \"20\",\n      \"isCorrect\": false\n    }\n  ],\n  \"explanation\": \"To solve 2x + 5 = 15, subtract 5 from both sides: 2x = 10, then divide by 2: x = 5\",\n  \"difficulty\": \"medium\",\n  \"subject\": \"Mathematics\",\n  \"tags\": [\"algebra\", \"equations\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/questions",
+              "host": ["{{baseUrl}}"],
+              "path": ["questions"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Question created successfully\",\n  \"question\": {\n    \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n    \"title\": \"Basic Algebra Question\",\n    \"questionText\": \"What is the value of x in the equation 2x + 5 = 15?\",\n    \"questionType\": \"multiple-choice\",\n    \"options\": [\n      {\n        \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j4\",\n        \"text\": \"5\",\n        \"isCorrect\": true\n      }\n    ],\n    \"difficulty\": \"medium\",\n    \"subject\": \"Mathematics\",\n    \"createdBy\": {\n      \"_id\": \"64f2a8b3c4d5e6f7g8h9i0j1\",\n      \"name\": \"John Doe\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create True/False Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Basic Math True/False\",\n  \"questionText\": \"Is 2 + 2 equal to 4?\",\n  \"questionType\": \"true-false\",\n  \"options\": [\n    {\n      \"text\": \"True\",\n      \"isCorrect\": true\n    },\n    {\n      \"text\": \"False\",\n      \"isCorrect\": false\n    }\n  ],\n  \"explanation\": \"2 + 2 equals 4, so the answer is True\",\n  \"difficulty\": \"easy\",\n  \"subject\": \"Mathematics\",\n  \"tags\": [\"basic-math\", \"addition\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/questions",
+              "host": ["{{baseUrl}}"],
+              "path": ["questions"]
+            }
+          }
+        },
+        {
+          "name": "Create Short Answer Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Capital City Question\",\n  \"questionText\": \"What is the capital of France?\",\n  \"questionType\": \"short-answer\",\n  \"correctAnswer\": \"Paris\",\n  \"explanation\": \"Paris is the capital and largest city of France\",\n  \"difficulty\": \"easy\",\n  \"subject\": \"Geography\",\n  \"tags\": [\"capitals\", \"europe\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/questions",
+              "host": ["{{baseUrl}}"],
+              "path": ["questions"]
+            }
+          }
+        },
+        {
+          "name": "Update Question",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Algebra Question\",\n  \"questionText\": \"What is the value of x in the equation 3x + 7 = 22?\",\n  \"difficulty\": \"hard\",\n  \"explanation\": \"To solve 3x + 7 = 22, subtract 7 from both sides: 3x = 15, then divide by 3: x = 5\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/questions/64f2c8b3c4d5e6f7g8h9i0j3",
+              "host": ["{{baseUrl}}"],
+              "path": ["questions", "64f2c8b3c4d5e6f7g8h9i0j3"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Question updated successfully\",\n  \"question\": {\n    \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n    \"title\": \"Updated Algebra Question\",\n    \"questionText\": \"What is the value of x in the equation 3x + 7 = 22?\",\n    \"difficulty\": \"hard\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Question",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/questions/64f2c8b3c4d5e6f7g8h9i0j3",
+              "host": ["{{baseUrl}}"],
+              "path": ["questions", "64f2c8b3c4d5e6f7g8h9i0j3"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Question deleted successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Subjects List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/questions/subjects/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["questions", "subjects", "list"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"subjects\": [\"Mathematics\", \"Science\", \"History\", \"Geography\", \"English\"]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Quiz Management",
+      "item": [
+        {
+          "name": "Get All Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes?subject=Mathematics&isPublished=true&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes"],
+              "query": [
+                {
+                  "key": "subject",
+                  "value": "Mathematics"
+                },
+                {
+                  "key": "isPublished",
+                  "value": "true"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"success\": true,\n  \"quizzes\": [\n    {\n      \"_id\": \"64f2b8b3c4d5e6f7g8h9i0j2\",\n      \"title\": \"Mathematics Quiz 1\",\n      \"description\": \"Basic algebra and arithmetic quiz\",\n      \"subject\": \"Mathematics\",\n      \"questions\": [\n        {\n          \"_id\": \"64f2c8b3c4d5e6f7g8h9i0j3\",\n          \"title\": \"Basic Algebra Question\",\n          \"difficulty\": \"medium\"\n        }\n      ],\n      \"createdBy\": {\n        \"_id\": \"64f2a8

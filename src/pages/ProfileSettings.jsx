@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { callApi } from "../tools/api";
 
 const ProfileSettings = () => {
+  const dispatch = useDispatch();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -11,6 +13,7 @@ const ProfileSettings = () => {
   const [editData, setEditData] = useState({
     fullName: "",
     email: "",
+    profileImage: "",
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -22,50 +25,97 @@ const ProfileSettings = () => {
     new: false,
     confirm: false,
   });
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const user = useSelector((state) => state.user.data);
 
   const handlePasswordChange = (field, value) => {
     setPasswordData((prev) => ({ ...prev, [field]: value }));
+    setErrorMessage("");
   };
 
   const handleProfileChange = (field, value) => {
     setEditData((prev) => ({ ...prev, [field]: value }));
+    setErrorMessage("");
   };
 
   const openEditModal = () => {
-    setEditData({ ...profileData });
+    setEditData({ 
+      fullName: user.name || "", 
+      email: user.email || "",
+      profileImage: user.profileImage || ""
+    });
     setShowEditModal(true);
   };
 
   const closeEditModal = () => {
     setShowEditModal(false);
-    setEditData({ fullName: "", email: "" });
+    setEditData({ fullName: "", email: "", profileImage: "" });
+    setErrorMessage("");
   };
 
-  const handleProfileSubmit = (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setProfileData({ ...editData });
-    setShowEditModal(false);
-    console.log("Profile updated:", editData);
+    try {
+      // Check if at least one field is provided
+      if (!editData.fullName && !editData.email && !editData.profileImage) {
+        setErrorMessage("At least one field must be provided for update");
+        return;
+      }
+
+      const response = await callApi({
+        url: "/users/update-profile",
+        method: "PUT",
+        data: {
+          name: editData.fullName,
+          email: editData.email,
+          profileImage: editData.profileImage,
+        },
+      });
+
+      setProfileData({
+        fullName: response.user.name,
+        email: response.user.email,
+      });
+      setShowEditModal(false);
+      setEditData({ fullName: "", email: "", profileImage: "" });
+      alert(response.message);
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to update profile");
+    }
   };
 
   const togglePasswordVisibility = (field) => {
     setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New passwords do not match!");
+      setErrorMessage("New passwords do not match!");
       return;
     }
-    // Handle password change logic here
-    console.log("Password change submitted:", passwordData);
-    setShowPasswordModal(false);
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+
+    try {
+      const response = await callApi({
+        url: "/users/change-password",
+        method: "PUT",
+        data: {
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        },
+      });
+
+      setShowPasswordModal(false);
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      alert(response.message);
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to update password");
+    }
   };
 
   const closeModal = () => {
@@ -76,11 +126,8 @@ const ProfileSettings = () => {
       confirmPassword: "",
     });
     setShowPasswords({ current: false, new: false, confirm: false });
+    setErrorMessage("");
   };
-
-  const user = useSelector((state)=> state.user.data)
-
-
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white">
@@ -119,7 +166,7 @@ const ProfileSettings = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2 deficits-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
               />
             </svg>
             Edit
@@ -237,6 +284,10 @@ const ProfileSettings = () => {
               </button>
             </div>
 
+            {errorMessage && (
+              <p className="text-red-500 text-sm mb-4">{errorMessage}</p>
+            )}
+
             <form onSubmit={handleProfileSubmit} className="space-y-4">
               {/* Full Name */}
               <div>
@@ -250,7 +301,7 @@ const ProfileSettings = () => {
                     handleProfileChange("fullName", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
+                  maxLength={50}
                 />
               </div>
 
@@ -264,7 +315,21 @@ const ProfileSettings = () => {
                   value={editData.email}
                   onChange={(e) => handleProfileChange("email", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
+                />
+              </div>
+
+              {/* Profile Image */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Profile Image URL
+                </label>
+                <input
+                  type="text"
+                  value={editData.profileImage}
+                  onChange={(e) =>
+                    handleProfileChange("profileImage", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -279,7 +344,7 @@ const ProfileSettings = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={!editData.fullName || !editData.email}
+                  disabled={!editData.fullName && !editData.email && !editData.profileImage}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
                 >
                   Save Changes
@@ -317,6 +382,10 @@ const ProfileSettings = () => {
                 </svg>
               </button>
             </div>
+
+            {errorMessage && (
+              <p className="text-red-500 text-sm mb-4">{errorMessage}</p>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Current Password */}

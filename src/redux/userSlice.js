@@ -1,3 +1,4 @@
+// userSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { callApi } from "../tools/api";
 
@@ -10,8 +11,6 @@ export const fetchUser = createAsyncThunk(
         url: "http://localhost:5000/auth/me",
         method: "GET",
       });
-
-      // Just return the user, don't try to dispatch here
       return res.user;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch user");
@@ -27,10 +26,10 @@ export const logOut = createAsyncThunk(
         url: "http://localhost:5000/auth/logout",
         method: "POST",
       });
-
-      
+      localStorage.removeItem("authToken");
+      return res; // Return response if needed
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch user");
+      return rejectWithValue(error.message || "Failed to logout");
     }
   }
 );
@@ -59,10 +58,22 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
-        state.data = action.payload; // updates state automatically
+        state.data = action.payload;
         state.loading = false;
       })
       .addCase(fetchUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(logOut.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(logOut.fulfilled, (state) => {
+        state.data = null; // Clear user data on successful logout
+        state.loading = false;
+      })
+      .addCase(logOut.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || action.error.message;
       });

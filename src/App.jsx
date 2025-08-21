@@ -1,3 +1,4 @@
+// App.jsx
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -47,8 +48,9 @@ export default function App() {
   if (user.loading) return <Loading />;
   // if (user.error) return <Error {...user.error} />;
 
-  function logOut() {
-    dispatch(logOut());
+  // Rename the local logOut function to avoid conflict
+  function handleLogout() {
+    dispatch(logOut()); // Now correctly dispatches the Redux logOut thunk
   }
 
   return (
@@ -56,6 +58,7 @@ export default function App() {
       {!showNav && (
         <>
           <Navbar
+            user={user}
             userDetailsController={() => {
               if (basic.userDetails) {
                 dispatch(hideUserDetails());
@@ -67,7 +70,7 @@ export default function App() {
           {basic.userDetails && (
             <UserDetails
               user={user}
-              onLogout={logOut}
+              onLogout={handleLogout} // Use the renamed function
               onClose={() => dispatch(hideUserDetails())}
             />
           )}

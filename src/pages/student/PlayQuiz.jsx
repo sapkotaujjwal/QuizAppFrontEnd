@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Clock,
   ChevronLeft,
@@ -11,148 +11,97 @@ import {
   RotateCcw,
   Home,
   BookOpen,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
+} from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { callApi } from '../../tools/api';
+import { showError } from '../../redux/basicSlice';
 
 const PlayQuiz = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [timeRemaining, setTimeRemaining] = useState(2700); // 45 minutes in seconds
+  const [timeRemaining, setTimeRemaining] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState(new Set());
+  const [quiz, setQuiz] = useState(null);
+  const [userAttempts, setUserAttempts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const navigate = useNavigate();
+  const { id: quizId } = useParams();
 
-  // Mock quiz data based on your models
-  const quiz = {
-    _id: "1",
-    title: "JavaScript Fundamentals",
-    description:
-      "Test your knowledge of JavaScript basics including variables, functions, and objects.",
-    subject: "Programming",
-    timeLimit: 45,
-    maxAttempts: 3,
-    passingScore: 70,
-    questions: [
-      {
-        _id: "q1",
-        title: "Variable Declaration",
-        questionText:
-          "Which of the following is the correct way to declare a variable in JavaScript ES6?",
-        questionType: "multiple-choice",
-        options: [
-          { text: 'var name = "John";', isCorrect: false },
-          { text: 'let name = "John";', isCorrect: true },
-          { text: 'const name = "John";', isCorrect: true },
-          { text: "Both B and C are correct", isCorrect: true },
-        ],
-        explanation:
-          "In ES6, both let and const are preferred over var for variable declaration.",
-        difficulty: "easy",
-      },
-      {
-        _id: "q2",
-        title: "Function Types",
-        questionText:
-          "What is the difference between function declarations and function expressions?",
-        questionType: "multiple-choice",
-        options: [
-          {
-            text: "Function declarations are hoisted, expressions are not",
-            isCorrect: true,
-          },
-          { text: "There is no difference", isCorrect: false },
-          { text: "Function expressions are faster", isCorrect: false },
-          {
-            text: "Function declarations cannot have parameters",
-            isCorrect: false,
-          },
-        ],
-        explanation:
-          "Function declarations are hoisted to the top of their scope, while function expressions are not.",
-        difficulty: "medium",
-      },
-      {
-        _id: "q3",
-        title: "Array Methods",
-        questionText:
-          "Which array method should you use to create a new array with all elements that pass a test?",
-        questionType: "multiple-choice",
-        options: [
-          { text: "map()", isCorrect: false },
-          { text: "filter()", isCorrect: true },
-          { text: "reduce()", isCorrect: false },
-          { text: "forEach()", isCorrect: false },
-        ],
-        explanation:
-          "The filter() method creates a new array with all elements that pass the test implemented by the provided function.",
-        difficulty: "easy",
-      },
-      {
-        _id: "q4",
-        title: "Async Programming",
-        questionText: "What is the purpose of async/await in JavaScript?",
-        questionType: "multiple-choice",
-        options: [
-          { text: "To make code run faster", isCorrect: false },
-          {
-            text: "To handle asynchronous operations more readably",
-            isCorrect: true,
-          },
-          { text: "To create loops", isCorrect: false },
-          { text: "To declare variables", isCorrect: false },
-        ],
-        explanation:
-          "Async/await syntax makes it easier to work with promises and write asynchronous code that looks synchronous.",
-        difficulty: "medium",
-      },
-      {
-        _id: "q5",
-        title: "Object Properties",
-        questionText: "What is the result of Object.keys({a: 1, b: 2, c: 3})?",
-        questionType: "multiple-choice",
-        options: [
-          { text: "[1, 2, 3]", isCorrect: false },
-          { text: '["a", "b", "c"]', isCorrect: true },
-          { text: "{a: 1, b: 2, c: 3}", isCorrect: false },
-          { text: "undefined", isCorrect: false },
-        ],
-        explanation:
-          "Object.keys() returns an array of the object's own enumerable property names.",
-        difficulty: "easy",
-      },
-    ],
-  };
+  // Fetch quiz data
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      setLoading(true);
+      try {
+        const response = await callApi({
+          url: `/quizzes/${quizId}`,
+          method: 'GET',
+        });
 
-  const currentQuestion = quiz.questions[currentQuestionIndex];
-  const totalQuestions = quiz.questions.length;
+        if (response.success) {
+          const { quiz, userAttempts } = response;
+          if (!quiz.isPublished) {
+            throw new Error('Quiz is not published');
+          }
+          if (userAttempts.length >= quiz.maxAttempts) {
+            throw new Error('Maximum attempts exceeded');
+          }
+          setQuiz(quiz);
+          setUserAttempts(userAttempts);
+          setTimeRemaining(quiz.timeLimit * 60);
+        } else {
+          throw new Error(response.message || 'Failed to fetch quiz');
+        }
+      } catch (err) {
+        setError(err.message);
+        showError({ message: err.message });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuiz();
+  }, [quizId]);
 
   // Timer effect
   useEffect(() => {
-    if (timeRemaining > 0 && !isSubmitted) {
+    if (timeRemaining > 0 && !isSubmitted && quiz) {
       const timer = setTimeout(() => {
         setTimeRemaining(timeRemaining - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (timeRemaining === 0 && !isSubmitted) {
+    } else if (timeRemaining === 0 && !isSubmitted && quiz) {
       handleSubmitQuiz();
     }
-  }, [timeRemaining, isSubmitted]);
+  }, [timeRemaining, isSubmitted, quiz]);
+
+  // Scroll to top when question changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }, [currentQuestionIndex]);
 
   const formatTime = (seconds) => {
+    if (!seconds && seconds !== 0) return '0:00';
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswerSelect = (optionText) => {
+  const handleAnswerSelect = (questionId, optionText, timeSpent) => {
     setAnswers({
       ...answers,
-      [currentQuestion._id]: optionText,
+      [questionId]: { selectedAnswer: optionText, timeSpent },
     });
   };
 
   const handleFlagQuestion = () => {
+    if (!currentQuestion) return;
     const newFlagged = new Set(flaggedQuestions);
     if (newFlagged.has(currentQuestion._id)) {
       newFlagged.delete(currentQuestion._id);
@@ -162,33 +111,42 @@ const PlayQuiz = () => {
     setFlaggedQuestions(newFlagged);
   };
 
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = async () => {
+    if (!quiz) return;
     setIsSubmitted(true);
-    calculateResults();
-  };
+    try {
+      const formattedAnswers = Object.entries(answers).map(([questionId, answer]) => ({
+        questionId,
+        selectedAnswer: answer.selectedAnswer,
+        timeSpent: answer.timeSpent || 0,
+      }));
 
-  const calculateResults = () => {
-    let correctAnswers = 0;
+      const response = await callApi({
+        url: `/quizzes/${quizId}/submit`,
+        method: 'POST',
+        data: {
+          answers: formattedAnswers,
+          timeSpent: quiz.timeLimit * 60 - timeRemaining,
+        },
+      });
 
-    quiz.questions.forEach((question) => {
-      const userAnswer = answers[question._id];
-      const correctOption = question.options.find((opt) => opt.isCorrect);
-
-      if (userAnswer === correctOption?.text) {
-        correctAnswers++;
+      if (response.success) {
+        setTimeout(() => {
+          setShowResults(response.attempt);
+        }, 1000);
+      } else {
+        throw new Error(response.message || 'Failed to submit quiz');
       }
-    });
-
-    const percentage = Math.round((correctAnswers / totalQuestions) * 100);
-    const passed = percentage >= quiz.passingScore;
-
-    setTimeout(() => {
-      setShowResults({ correctAnswers, totalQuestions, percentage, passed });
-    }, 1000);
+    } catch (err) {
+      setError(err.message);
+      showError({ message: err.message });
+      setIsSubmitted(false);
+    }
   };
 
   const getProgressPercentage = () => {
-    return ((currentQuestionIndex + 1) / totalQuestions) * 100;
+    if (!quiz || !quiz.questions) return 0;
+    return ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
   };
 
   const goToPrevious = () => {
@@ -198,26 +156,77 @@ const PlayQuiz = () => {
   };
 
   const goToNext = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
+    if (!quiz || !quiz.questions || currentQuestionIndex >= quiz.questions.length - 1) return;
+    setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
   const goToQuestion = (index) => {
+    if (!quiz || !quiz.questions || index < 0 || index >= quiz.questions.length) return;
     setCurrentQuestionIndex(index);
   };
 
   const handleRetakeQuiz = () => {
+    if (!quiz) return;
     setCurrentQuestionIndex(0);
     setAnswers({});
-    setTimeRemaining(quiz.timeLimit * 60); // reset timer
+    setTimeRemaining(quiz.timeLimit * 60);
     setIsSubmitted(false);
     setShowResults(false);
     setFlaggedQuestions(new Set());
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Quiz...</h2>
+          <p className="text-gray-600">Please wait while we fetch the quiz.</p>
+        </div>
+      </div>
+    );
+  }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <XCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            className="flex items-center gap-2 px-6 py-3 mx-auto shadow1 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            onClick={() => navigate('/student/quiz')}
+          >
+            <Home className="w-5 h-5" />
+            Back to Quizzes
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <XCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Questions Available</h2>
+          <p className="text-gray-600 mb-6">This quiz has no questions.</p>
+          <button
+            className="flex items-center gap-2 px-6 py-3 mx-auto shadow1 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            onClick={() => navigate('/student/quiz')}
+          >
+            <Home className="w-5 h-5" />
+            Back to Quizzes
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const totalQuestions = quiz.questions.length;
 
   if (showResults) {
     return (
@@ -226,7 +235,7 @@ const PlayQuiz = () => {
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <div
               className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${
-                showResults.passed ? "bg-green-100" : "bg-red-100"
+                showResults.passed ? 'bg-green-100' : 'bg-red-100'
               }`}
             >
               {showResults.passed ? (
@@ -237,31 +246,31 @@ const PlayQuiz = () => {
             </div>
 
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {showResults.passed ? "Congratulations!" : "Quiz Completed"}
+              {showResults.passed ? 'Congratulations!' : 'Quiz Completed'}
             </h2>
 
             <p className="text-lg text-gray-600 mb-8">
               {showResults.passed
-                ? "You passed the quiz!"
-                : "You need more practice."}
+                ? 'You passed the quiz!'
+                : 'You need more practice.'}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-blue-50 rounded-lg p-6">
                 <div className="text-3xl font-bold text-blue-600 mb-2">
-                  {showResults.correctAnswers}/{showResults.totalQuestions}
+                  {showResults.score}/{totalQuestions}
                 </div>
                 <div className="text-sm text-gray-600">Correct Answers</div>
               </div>
 
               <div
                 className={`rounded-lg p-6 ${
-                  showResults.passed ? "bg-green-50" : "bg-red-50"
+                  showResults.passed ? 'bg-green-50' : 'bg-red-50'
                 }`}
               >
                 <div
                   className={`text-3xl font-bold mb-2 ${
-                    showResults.passed ? "text-green-600" : "text-red-600"
+                    showResults.passed ? 'text-green-600' : 'text-red-600'
                   }`}
                 >
                   {showResults.percentage}%
@@ -278,17 +287,19 @@ const PlayQuiz = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                onClick={handleRetakeQuiz}
-              >
-                <RotateCcw className="w-5 h-5" />
-                Retake Quiz
-              </button>
+              {userAttempts.length + 1 < quiz.maxAttempts && (
+                <button
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={handleRetakeQuiz}
+                >
+                  <RotateCcw className="w-5 h-5" />
+                  Retake Quiz
+                </button>
+              )}
 
               <button
                 className="flex items-center gap-2 px-6 py-3 shadow1 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                onClick={() => navigate("/student/quiz")}
+                onClick={() => navigate('/student/quiz')}
               >
                 <Home className="w-5 h-5" />
                 Back to Quizzes
@@ -316,38 +327,28 @@ const PlayQuiz = () => {
     );
   }
 
-
-  useEffect(()=>{
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth", // smooth scrolling
-    });
-  },[])
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              {quiz.title}
-            </h1>
-            <p className="text-sm text-gray-600">{quiz.subject}</p>
+            <h1 className="text-xl font-semibold text-gray-900">{quiz.title || 'Quiz'}</h1>
+            <p className="text-sm text-gray-600">{quiz.subject || 'Unknown'}</p>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-sm">
               <Clock
                 className={`w-4 h-4 ${
-                  timeRemaining < 300 ? "text-red-500" : "text-gray-500"
+                  timeRemaining < 300 ? 'text-red-500' : 'text-gray-500'
                 }`}
               />
               <span
                 className={
                   timeRemaining < 300
-                    ? "text-red-500 font-medium"
-                    : "text-gray-700"
+                    ? 'text-red-500 font-medium'
+                    : 'text-gray-700'
                 }
               >
                 {formatTime(timeRemaining)}
@@ -394,13 +395,13 @@ const PlayQuiz = () => {
                     key={index}
                     onClick={() => goToQuestion(index)}
                     className={`
-                      relative w-15 h-10 text-sm font-medium rounded-lg shadow1 transition-colors
+                      relative w-10 h-10 text-sm font-medium rounded-lg shadow1 transition-colors
                       ${
                         currentQuestionIndex === index
-                          ? "bg-blue-600 text-white border-blue-600"
+                          ? 'bg-blue-600 text-white border-blue-600'
                           : answers[quiz.questions[index]._id]
-                          ? "bg-green-100 text-green-800 border-green-300"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                          ? 'bg-green-100 text-green-800 border-green-300'
+                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                       }
                     `}
                   >
@@ -438,23 +439,25 @@ const PlayQuiz = () => {
                       <span className="text-sm font-medium text-blue-600">
                         Question {currentQuestionIndex + 1} of {totalQuestions}
                       </span>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          currentQuestion.difficulty === "easy"
-                            ? "bg-green-100 text-green-800"
-                            : currentQuestion.difficulty === "medium"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {currentQuestion.difficulty}
-                      </span>
+                      {currentQuestion.difficulty && (
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            currentQuestion.difficulty === 'easy'
+                              ? 'bg-green-100 text-green-800'
+                              : currentQuestion.difficulty === 'medium'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {currentQuestion.difficulty}
+                        </span>
+                      )}
                     </div>
                     <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                      {currentQuestion.title}
+                      {currentQuestion.title || 'Untitled Question'}
                     </h2>
                     <p className="text-gray-700 leading-relaxed">
-                      {currentQuestion.questionText}
+                      {currentQuestion.questionText || 'No question text available'}
                     </p>
                   </div>
 
@@ -462,8 +465,8 @@ const PlayQuiz = () => {
                     onClick={handleFlagQuestion}
                     className={`ml-4 p-2 rounded-lg transition-colors ${
                       flaggedQuestions.has(currentQuestion._id)
-                        ? "bg-yellow-100 text-yellow-600"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? 'bg-yellow-100 text-yellow-600'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
                     <Flag className="w-5 h-5" />
@@ -474,25 +477,31 @@ const PlayQuiz = () => {
               {/* Question Options */}
               <div className="p-6">
                 <div className="space-y-3">
-                  {currentQuestion.options.map((option, index) => {
+                  {(currentQuestion.options || []).map((option, index) => {
                     const isSelected =
-                      answers[currentQuestion._id] === option.text;
+                      answers[currentQuestion._id]?.selectedAnswer === option.text;
                     return (
                       <button
                         key={index}
-                        onClick={() => handleAnswerSelect(option.text)}
+                        onClick={() =>
+                          handleAnswerSelect(
+                            currentQuestion._id,
+                            option.text,
+                            quiz.timeLimit * 60 - timeRemaining
+                          )
+                        }
                         className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
                           isSelected
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                               isSelected
-                                ? "border-blue-500 bg-blue-500"
-                                : "border-gray-300"
+                                ? 'border-blue-500 bg-blue-500'
+                                : 'border-gray-300'
                             }`}
                           >
                             {isSelected && (
@@ -501,17 +510,17 @@ const PlayQuiz = () => {
                           </div>
                           <span
                             className={`font-medium ${
-                              isSelected ? "text-blue-900" : "text-gray-900"
+                              isSelected ? 'text-blue-900' : 'text-gray-900'
                             }`}
                           >
                             {String.fromCharCode(65 + index)}.
                           </span>
                           <span
                             className={
-                              isSelected ? "text-blue-900" : "text-gray-700"
+                              isSelected ? 'text-blue-900' : 'text-gray-700'
                             }
                           >
-                            {option.text}
+                            {option.text || 'No option text'}
                           </span>
                         </div>
                       </button>
@@ -535,8 +544,8 @@ const PlayQuiz = () => {
                   disabled={currentQuestionIndex === 0}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                     currentQuestionIndex === 0
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white shadow1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white shadow1 border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -557,10 +566,10 @@ const PlayQuiz = () => {
                   disabled={currentQuestionIndex === totalQuestions - 1}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                     currentQuestionIndex === totalQuestions - 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : answers[currentQuestion._id]
-                      ? "bg-blue-600 text-white hover:bg-blue-700"
-                      : "bg-white shadow1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-white shadow1 border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   Next
@@ -571,21 +580,19 @@ const PlayQuiz = () => {
 
             {/* Quiz Info Card */}
             <div className="mt-6 bg-white rounded-lg shadow-sm shadow1 p-4">
-              <h3 className="font-medium text-gray-900 mb-2">
-                Quiz Information
-              </h3>
+              <h3 className="font-medium text-gray-900 mb-2">Quiz Information</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500">Time Limit:</span>
-                  <span className="ml-2 font-medium">{quiz.timeLimit} min</span>
+                  <span className="ml-2 font-medium">{quiz.timeLimit || 'N/A'} min</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Passing Score:</span>
-                  <span className="ml-2 font-medium">{quiz.passingScore}%</span>
+                  <span className="ml-2 font-medium">{quiz.passingScore || 0}%</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Max Attempts:</span>
-                  <span className="ml-2 font-medium">{quiz.maxAttempts}</span>
+                  <span className="ml-2 font-medium">{quiz.maxAttempts || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Questions:</span>

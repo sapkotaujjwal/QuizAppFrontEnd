@@ -18,8 +18,9 @@ import {
   ArrowLeft,
   Zap,
 } from "lucide-react";
+import { callApi } from "../../tools/api";
 
-const CreateUser = ({close}) => {
+const CreateUser = ({ close }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -92,13 +93,27 @@ const CreateUser = ({close}) => {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      showNotification(
-        "success",
-        `${formData.role} user created successfully!`
-      );
+    try {
+      // Prepare form data for API
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      };
+
+      // If there's a profile image, we'll need to handle it differently
+      // For now, we'll skip image upload as the API doesn't specify it
+      await callApi({
+        url: "/users",
+        method: "POST",
+        data: userData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      showNotification("success", `${formData.role} user created successfully!`);
 
       // Reset form
       setFormData({
@@ -110,7 +125,14 @@ const CreateUser = ({close}) => {
         profileImage: null,
       });
       setImagePreview(null);
-    }, 2000);
+    } catch (error) {
+      showNotification(
+        "error",
+        error.message || "Failed to create user. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const containerVariants = {
@@ -131,7 +153,7 @@ const CreateUser = ({close}) => {
   };
 
   return (
-    <div className="min-h-screen  bg-gray-50 p-6 lg:py-10">
+    <div className="min-h-screen bg-gray-50 p-6 lg:py-10">
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -140,18 +162,24 @@ const CreateUser = ({close}) => {
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center mb-8">
-
-            <div className="flex items-center space-x-4">
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" onClick={()=>{close()}}>
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
-              </button>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-lg flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-white" />
-                </div>
-                <h1 className="text-xl font-bold text-gray-900">Create New User</h1>
+          <div className="flex items-center space-x-4">
+            <button
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              onClick={() => {
+                close();
+              }}
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-lg flex items-center justify-center">
+                <Zap className="w-4 h-4 text-white" />
               </div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Create New User
+              </h1>
             </div>
+          </div>
         </motion.div>
 
         {/* Form Container */}
@@ -202,9 +230,8 @@ const CreateUser = ({close}) => {
                 id="profileImage"
               />
               <label
-
                 htmlFor="profileImage"
-                className="text-sm bg-gray-600 p-3 px-8 rounded-3xl text-white  cursor-pointer hover:text-white transition-colors"
+                className="text-sm bg-gray-600 p-3 px-8 rounded-3xl text-white cursor-pointer hover:text-white transition-colors"
               >
                 {imagePreview ? "Change Profile Image" : "Upload Profile Image"}
               </label>

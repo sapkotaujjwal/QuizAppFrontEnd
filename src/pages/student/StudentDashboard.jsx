@@ -1,10 +1,56 @@
 import { Clock, Trophy, RefreshCw, Award, ChevronDown, BookOpen } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { callApi } from '../../tools/api';
+import { useEffect, useState } from 'react';
 
 export default function StudentDashboard() {
+  const user = useSelector((state) => state.user.data);
+  const [quizAttempts, setQuizAttempts] = useState([]);
 
-  const user = useSelector((state)=> state.user.data)
+  async function fetchQuizAttempts() {
+    try {
+      const data = await callApi({
+        url: '/analytics/self',
+        method: 'GET',
+      });
+      setQuizAttempts(data);
+    } catch (error) {
+      console.error('Failed to fetch quiz attempts:', error.message);
+      // Optionally dispatch an error to Redux or show a user-friendly message
+      // showError({ message: 'Failed to fetch quiz attempts' });
+    }
+  }
 
+  useEffect(() => {
+    fetchQuizAttempts();
+  }, []);
+
+  // Helper function to calculate total study time in hours
+  const calculateStudyTime = (attempts) => {
+    const totalSeconds = attempts.reduce((sum, attempt) => sum + attempt.timeSpent, 0);
+    return (totalSeconds / 3600).toFixed(1); // Convert seconds to hours
+  };
+
+  // Helper function to calculate average score
+  const calculateAverageScore = (attempts) => {
+    if (attempts.length === 0) return 0;
+    const totalPercentage = attempts.reduce((sum, attempt) => sum + attempt.percentage, 0);
+    return Math.round(totalPercentage / attempts.length);
+  };
+
+  // Helper function to count passed quizzes
+  const countPassedQuizzes = (attempts) => {
+    return attempts.filter((attempt) => attempt.passed).length;
+  };
+
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
@@ -23,7 +69,7 @@ export default function StudentDashboard() {
               <RefreshCw className="w-6 h-6 text-blue-600" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-1">0</div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">{quizAttempts.length}</div>
           <div className="text-gray-500 text-sm">Completed Quizzes</div>
         </div>
 
@@ -34,7 +80,7 @@ export default function StudentDashboard() {
               <Trophy className="w-6 h-6 text-green-600" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-1">0%</div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">{calculateAverageScore(quizAttempts)}%</div>
           <div className="text-gray-500 text-sm">Average Score</div>
         </div>
 
@@ -45,7 +91,7 @@ export default function StudentDashboard() {
               <Award className="w-6 h-6 text-yellow-600" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-1">0</div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">{countPassedQuizzes(quizAttempts)}</div>
           <div className="text-gray-500 text-sm">Passed</div>
         </div>
 
@@ -56,7 +102,7 @@ export default function StudentDashboard() {
               <Clock className="w-6 h-6 text-purple-600" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-1">0h</div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">{calculateStudyTime(quizAttempts)}h</div>
           <div className="text-gray-500 text-sm">Study Time</div>
         </div>
       </div>
@@ -69,10 +115,9 @@ export default function StudentDashboard() {
             <div className="relative">
               <select className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <option>All Subjects</option>
-                <option>Mathematics</option>
-                <option>Science</option>
-                <option>History</option>
-                <option>English</option>
+                <option>Programming</option>
+                <option>Web Development</option>
+                <option>Database</option>
               </select>
               <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
             </div>
@@ -85,14 +130,44 @@ export default function StudentDashboard() {
         <div className="p-6 border-b border-gray-100">
           <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
         </div>
-        
-        {/* Empty State */}
-        <div className="p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-            <BookOpen className="w-8 h-8 text-gray-400" />
+
+        {quizAttempts.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+              <BookOpen className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500">No quiz attempts yet. Start with your first quiz!</p>
           </div>
-          <p className="text-gray-500">No quiz attempts yet. Start with your first quiz!</p>
-        </div>
+        ) : (
+          <div className="p-6">
+            {quizAttempts.map((attempt) => (
+              <div
+                key={attempt._id}
+                className="border-b border-gray-100 py-4 last:border-b-0"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">{attempt.quiz.title}</h3>
+                    <p className="text-sm text-gray-500">{attempt.quiz.subject} • Attempt #{attempt.attemptNumber}</p>
+                    <p className="text-sm text-gray-500">Taken on {formatDate(attempt.startedAt)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-gray-900">
+                      {attempt.score}/{attempt.quiz.totalQuestions} ({attempt.percentage}%)
+                    </p>
+                    <p
+                      className={`text-sm font-medium ${
+                        attempt.passed ? 'text-green-600' : 'text-red-600'
+                      }`}
+                    >
+                      {attempt.passed ? 'Passed' : 'Failed'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
